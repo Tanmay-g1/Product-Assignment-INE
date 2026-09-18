@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS price_history (
     product_id BIGINT NOT NULL REFERENCES tracked_products(product_id) ON DELETE CASCADE,
     price NUMERIC(10, 2) NOT NULL,
     stock INT,
-    currency VARCHAR(10) DEFAULT 'USD',
+    currency VARCHAR(10) DEFAULT 'INR',
     scraped_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
