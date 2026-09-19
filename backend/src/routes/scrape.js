@@ -141,17 +141,8 @@ router.post('/scrape-all', async (req, res) => {
         console.warn(`[Scrape-All] [Product ${pId}] Scrape failed: ${scrapeResult.reason}. Omitted from price_history.`);
       }
 
-      return {
-        productId: pId,
-        name: product.name,
-        success: scrapeResult.success,
-        price: scrapeResult.success ? scrapeResult.data?.price : null,
-        stock: scrapeResult.success ? scrapeResult.data?.stock : null,
-        currency: scrapeResult.success ? scrapeResult.data?.currency : null,
-        attemptsCount: attempts.length,
-        durationMs: scrapeResult.totalDurationMs,
-        reason: scrapeResult.success ? null : scrapeResult.reason
-      };
+      // Return minimal shape — full detail is in Supabase scrape_logs / price_history
+      return { productId: pId, success: scrapeResult.success };
     });
 
     const succeeded = results.filter(r => r.success).length;
@@ -161,13 +152,11 @@ router.post('/scrape-all', async (req, res) => {
     console.log(`[Scrape-All] Batch complete in ${totalDurationMs}ms: ${succeeded} succeeded, ${failed} failed.`);
 
     return res.json({
-      summary: {
-        total: products.length,
-        succeeded,
-        failed,
-        totalDurationMs
-      },
-      results
+      total: products.length,
+      succeeded,
+      failed,
+      totalDurationMs,
+      results  // compact: [{productId, success}, ...]
     });
   } catch (error) {
     console.error('[Scrape-All Critical Error]:', error);
