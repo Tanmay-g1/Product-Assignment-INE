@@ -1,17 +1,90 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import Dashboard from './pages/Dashboard';
+import SearchPage from './pages/SearchPage';
+import ProductDetail from './pages/ProductDetail';
+import { api } from './services/api';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'search' | 'detail'
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [trackedProducts, setTrackedProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchTrackedProducts = async () => {
+    setLoading(true);
+    try {
+      const prods = await api.getTrackedProducts();
+      setTrackedProducts(prods);
+    } catch (err) {
+      console.error('Failed to load tracked products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrackedProducts();
+  }, []);
+
+  const handleSelectProduct = (productId) => {
+    setSelectedProductId(productId);
+    setActiveTab('detail');
+  };
+
+  const handleBackToDashboard = () => {
+    setSelectedProductId(null);
+    setActiveTab('dashboard');
+    fetchTrackedProducts();
+  };
+
+  const handleProductTracked = (productId) => {
+    fetchTrackedProducts();
+    setSelectedProductId(productId);
+    setActiveTab('detail');
+  };
+
+  const trackedIdsSet = new Set(trackedProducts.map((p) => Number(p.productId)));
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="glass-card" style={{ maxWidth: '640px', width: '100%', padding: '2.5rem', textAlign: 'center' }}>
-        <div className="badge badge-success" style={{ marginBottom: '1rem' }}>Phase 1 Initialized</div>
-        <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1rem', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          INE Product Price Tracker
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          Automated web scraper with Proof-of-Work challenge solver, telemetry logs, and scheduled historical tracking.
-        </p>
-      </div>
+    <div className="app-wrapper">
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setSelectedProductId(null);
+          setActiveTab(tab);
+          if (tab === 'dashboard') {
+            fetchTrackedProducts();
+          }
+        }}
+        trackedCount={trackedProducts.length}
+      />
+
+      <main>
+        {activeTab === 'dashboard' && (
+          <Dashboard
+            products={trackedProducts}
+            loading={loading}
+            onRefresh={fetchTrackedProducts}
+            onSelectProduct={handleSelectProduct}
+            onGoToSearch={() => setActiveTab('search')}
+          />
+        )}
+
+        {activeTab === 'search' && (
+          <SearchPage
+            trackedIds={trackedIdsSet}
+            onProductTracked={handleProductTracked}
+          />
+        )}
+
+        {activeTab === 'detail' && selectedProductId && (
+          <ProductDetail
+            productId={selectedProductId}
+            onBack={handleBackToDashboard}
+          />
+        )}
+      </main>
     </div>
   );
 }

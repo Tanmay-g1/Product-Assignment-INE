@@ -24,12 +24,12 @@ const SAMPLE_PRODUCT_IDS = [
   692  // Meridian Indoor Camera S
 ];
 
-async function runSingle(productId, headless = true) {
+async function runSingle(productId, headless = true, maxAttempts = 3) {
   console.log(`\n======================================================`);
-  console.log(`TESTING PRODUCT ID: ${productId} (Headless: ${headless})`);
+  console.log(`TESTING PRODUCT ID: ${productId} (Headless: ${headless}, MaxRetries: ${maxAttempts})`);
   console.log(`======================================================`);
 
-  const result = await scrapeProductPrice(productId, { headless, maxAttempts: 3 });
+  const result = await scrapeProductPrice(productId, { headless, maxAttempts });
   console.log('\n--- Scraper Result Summary ---');
   console.log(`Success: ${result.success}`);
   if (result.success) {
@@ -43,9 +43,9 @@ async function runSingle(productId, headless = true) {
   return result;
 }
 
-async function runBatch(count = 15, headless = true) {
+async function runBatch(count = 15, headless = true, maxAttempts = 3) {
   console.log(`\n======================================================`);
-  console.log(`STARTING BATCH TEST SUITE (${count} RUNS, Headless: ${headless})`);
+  console.log(`STARTING BATCH TEST SUITE (${count} RUNS, Headless: ${headless}, MaxRetries: ${maxAttempts})`);
   console.log(`======================================================`);
 
   const results = [];
@@ -56,7 +56,7 @@ async function runBatch(count = 15, headless = true) {
     console.log(`\n[Run ${i + 1}/${testIds.length}] Testing product ${pId}...`);
     const start = Date.now();
     try {
-      const res = await scrapeProductPrice(pId, { headless, maxAttempts: 3 });
+      const res = await scrapeProductPrice(pId, { headless, maxAttempts });
       results.push({
         index: i + 1,
         productId: pId,
@@ -105,11 +105,14 @@ const headless = !isHeaded;
 const countArg = args.find(a => a.startsWith('--count='));
 const count = countArg ? parseInt(countArg.split('=')[1], 10) : 15;
 
+const retriesArg = args.find(a => a.startsWith('--maxRetries=') || a.startsWith('--retries='));
+const maxRetries = retriesArg ? parseInt(retriesArg.split('=')[1], 10) : 3;
+
 const singleIdArg = args.find(a => !a.startsWith('--'));
 const singleId = singleIdArg ? parseInt(singleIdArg, 10) : 687;
 
 if (isBatch) {
-  runBatch(count, headless);
+  runBatch(count, headless, maxRetries);
 } else {
-  runSingle(singleId, headless);
+  runSingle(singleId, headless, maxRetries);
 }

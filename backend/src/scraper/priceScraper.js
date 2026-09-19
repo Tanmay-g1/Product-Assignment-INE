@@ -173,7 +173,7 @@ export async function scrapeProductPrice(productId, options = {}) {
       await revealBtn.click({ timeout: 5000 });
 
       // 9. Wait for either the decrypted quote hook or network response to resolve
-      const quotePromise = page.waitForFunction(() => window.__CAPTURED_PRICE_QUOTE__, { timeout: 15000 })
+      const quotePromise = page.waitForFunction(() => window.__CAPTURED_PRICE_QUOTE__, { timeout: 24000 })
         .then(handle => handle.jsonValue())
         .catch(e => null);
 
