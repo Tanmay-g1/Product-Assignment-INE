@@ -77,9 +77,9 @@ router.post('/scrape-all', async (req, res) => {
   // Scrape loop runs detached — HTTP connection is already closed
   (async () => {
     const batchStartTime = Date.now();
-    console.log(`[Scrape-All] Batch started — ${products.length} products, concurrency 3.`);
+    console.log(`[Scrape-All] Batch started — ${products.length} products, concurrency 1 (sequential).`);
 
-    const CONCURRENCY = 3;
+    const CONCURRENCY = 1; // 1 Chromium instance at a time — avoids OOM on Render free tier (512 MB)
 
     try {
       await asyncPool(products, CONCURRENCY, async (product) => {
